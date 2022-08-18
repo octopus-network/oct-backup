@@ -15,9 +15,5 @@ Cargo.lock
 .env
 .DS_Store
 *.iml
-<<<<<<< HEAD
 .vscode
 /node_modules/
-=======
-.vscode
->>>>>>> finish anchor backup for staking history and validator set
