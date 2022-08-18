@@ -1,14 +1,14 @@
 use std::str::FromStr;
-use bigdecimal::{BigDecimal, FromPrimitive};
-use chrono::Utc;
+
+use bigdecimal::BigDecimal;
 use itertools::Itertools;
-use serde_json::json;
+use tracing::warn;
+
 use crate::{AccountId, AnchorContract, AnchorView, ValidatorSetInfo, ValidatorSetStruct};
-use crate::anchor::types::{AppchainDelegator, get_appchain_id_from_contract_id, RewardHistory};
+use crate::anchor::types::{get_appchain_id_from_contract_id, RewardHistory};
 use crate::db::delegator_infos::DelegatorInfoStruct;
 use crate::db::staking_histories::StakingHistoryStruct;
 use crate::db::validator_infos::ValidatorInfoStruct;
-
 
 pub async fn backup_staking_histories(contract_id: AccountId,start_index: u64, quantity: Option<u64>)->anyhow::Result<()> {
     let anchor_contract =  AnchorContract{ contract_account_id:  contract_id.clone()};
@@ -24,7 +24,7 @@ pub async fn backup_anchor_validator_set(contract_id: AccountId, era_number: u64
     let anchor_contract =  AnchorContract{ contract_account_id:  contract_id.clone()};
     let info_option = anchor_contract.get_validator_set_info_of(era_number).await;
     if info_option.is_none() {
-        println!("get_validator_set_info_of result is none, skip backup!");
+        warn!("get_validator_set_info_of contract:{},era:{} ,and result is none, skip backup." , contract_id ,era_number);
     }
     let info = info_option.unwrap();
     let (validator_struct,

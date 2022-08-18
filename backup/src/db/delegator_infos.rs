@@ -1,14 +1,13 @@
 sea_query::sea_query_driver_postgres!();
 use std::str::FromStr;
-use bigdecimal::{BigDecimal, FromPrimitive};
-use chrono::{NaiveDateTime, Utc};
+use bigdecimal::BigDecimal;
+use chrono::NaiveDateTime;
 use sea_query::{Iden, PostgresQueryBuilder, Query, Values};
-use sqlx::types::Decimal;
-use crate::{AccountId, DB_POOL};
 use crate::anchor::types::{AppchainDelegator, AppchainId};
-use crate::db::validator_infos::ValidatorInfoStruct;
 use serde::{Deserialize, Serialize};
 use sea_query_driver_postgres::bind_query;
+use crate::global::DB_POOL;
+use crate::util::naive_date_time_now;
 
 #[allow(unused)]
 #[derive(Iden)]
@@ -51,11 +50,9 @@ impl DelegatorInfoStruct {
             validator_id: appchain_delegator.validator_id.to_string(),
             delegator_id: appchain_delegator.delegator_id.to_string(),
             deposit_amount: BigDecimal::from_str(appchain_delegator.delegation_amount.to_string().as_str()).unwrap(),
-            // todo wait for add field
             total_reward,
             unwithdrawn_reward,
-            // todo wait for add field
-            update_date: Utc::now().naive_utc()
+            update_date: naive_date_time_now()
         }
 
     }

@@ -57,6 +57,6 @@ CREATE TABLE public.staking_histories
     timestamp_date timestamp   NOT NULL,
     update_date    timestamp   NOT NULL,
     appchain_id    varchar(25) NOT NULL,
-    PRIMARY KEY (appchain_id)
+    PRIMARY KEY (appchain_id, index)
 );
 

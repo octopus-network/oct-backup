@@ -1,13 +1,17 @@
-sea_query::sea_query_driver_postgres!();
 use std::str::FromStr;
-use bigdecimal::{BigDecimal, FromPrimitive};
-use chrono::{NaiveDateTime, Utc};
+
+use bigdecimal::BigDecimal;
+use chrono::NaiveDateTime;
 use sea_query::{Iden, PostgresQueryBuilder, Query, Values};
-use crate::anchor::types::{AppchainId, AppchainValidator};
-use crate::{DB_POOL, ValidatorSetStruct};
 use serde::{Deserialize, Serialize};
+
 use sea_query_driver_postgres::bind_query;
 
+use crate::anchor::types::{AppchainId, AppchainValidator};
+use crate::global::DB_POOL;
+use crate::util::naive_date_time_now;
+
+sea_query::sea_query_driver_postgres!();
 #[derive(Iden)]
 #[iden(rename = "validator_infos")]
 enum ValidatorInfosTable {
@@ -56,7 +60,7 @@ impl ValidatorInfoStruct {
             is_unbonding: appchain_validator.is_unbonding,
             total_reward,
             // todo wait for add field
-            update_date: Utc::now().naive_utc(),
+            update_date: naive_date_time_now(),
             unwithdrawn_reward
         }
 
@@ -93,7 +97,6 @@ impl ValidatorInfoStruct {
                 validator_info.unwithdrawn_reward.clone().into(),
                 validator_info.update_date.clone().into()
             ]).expect("DB query data fail validator_set");
-
         }
         query.build(PostgresQueryBuilder)
     }

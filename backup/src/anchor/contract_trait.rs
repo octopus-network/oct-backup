@@ -1,11 +1,8 @@
-use std::future::Future;
-use crate::anchor::types::{AppchainDelegator, AppchainValidator, RewardHistory, StakingHistory, ValidatorSetInfo};
-use anyhow::{anyhow, Result};
-use near_primitives::types::{AccountId, FunctionArgs};
+use crate::anchor::types::{AppchainDelegator, RewardHistory, StakingHistory, ValidatorSetInfo};
+use near_primitives::types::AccountId;
 use serde_json::json;
 use crate::view;
 use std::option::Option;
-use futures::FutureExt;
 use async_trait::async_trait;
 
 pub struct AnchorContract {
@@ -115,17 +112,3 @@ impl AnchorView for AnchorContract {
 
     }
 }
-
-pub async fn get_validator_set_info_of(contract_account_id: AccountId, era_number: u64) -> Option<ValidatorSetInfo> {
-    // let a = rpc_call(contract_account_id,
-    //          "get_validator_set_info_of".to_string(),
-    //          FunctionArgs::from(json!({
-    //             "era_number": era_number.to_string()}).to_string().into_bytes()))
-
-    view(
-        contract_account_id,
-        "get_validator_set_info_of".to_string(),
-        json!({"era_number": era_number.to_string()}),
-    ).await.unwrap().json().unwrap()
-}
-

@@ -1,15 +1,16 @@
 sea_query::sea_query_driver_postgres!();
 use anyhow::Result;
-use bigdecimal::{BigDecimal, FromPrimitive};
-use sea_query::{Iden, OnConflict, PostgresQueryBuilder, Query, Values};
+use bigdecimal::BigDecimal;
+use sea_query::{Iden, PostgresQueryBuilder, Query, Values};
 use sea_query_driver_postgres::bind_query;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::str::FromStr;
-use chrono::{Local, NaiveDateTime, Utc};
-use near_primitives::types::AccountId;
-use crate::anchor::types::{AppchainId, ValidatorSetProcessingStatus};
-use crate::{DB_POOL, ValidatorSetInfo};
+use chrono::NaiveDateTime;
+use crate::anchor::types::AppchainId;
+use crate::global::DB_POOL;
+use crate::ValidatorSetInfo;
+use crate::util::{naive_date_time_from_nanos_time, naive_date_time_now};
 
 #[derive(Iden)]
 #[iden(rename = "validator_set")]
@@ -49,22 +50,18 @@ impl ValidatorSetStruct {
         validator_set_info: ValidatorSetInfo,
         appchain_id: AppchainId,
     )->Self {
-        dbg!(&validator_set_info);
         Self {
             appchain_id,
             era_number: validator_set_info.era_number.into(),
             total_stake: BigDecimal::from_str(validator_set_info.total_stake.to_string().as_str()).unwrap(),
             start_block_height: validator_set_info.start_block_height.into(),
             start_timestamp: validator_set_info.start_timestamp.into(),
-            // todo correct by local
-            start_timestamp_date: Utc::now().naive_utc(),
+            start_timestamp_date: naive_date_time_from_nanos_time(validator_set_info.start_timestamp),
             staking_history_index: validator_set_info.staking_history_index.into(),
             unprofitable_validator_ids: validator_set_info.unprofitable_validator_ids.join(","),
             valid_total_stake: BigDecimal::from_str(validator_set_info.valid_total_stake.to_string().as_str()).expect("Failed to convert u128 to BigDecimal."),
-            // todo verify
             processing_status: json!(validator_set_info.processing_status),
-            // correct local date time
-            update_time: Utc::now().naive_utc()
+            update_time: naive_date_time_now()
         }
 
     }

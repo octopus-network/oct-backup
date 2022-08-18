@@ -1,17 +1,16 @@
-sea_query::sea_query_driver_postgres!();
-use anyhow::Result;
-use bigdecimal::{BigDecimal, FromPrimitive};
-use sea_query::{Iden, OnConflict, PostgresQueryBuilder, Query, Values};
-use sea_query_driver_postgres::bind_query;
+use bigdecimal::BigDecimal;
+use chrono::NaiveDateTime;
+use sea_query::{Iden, PostgresQueryBuilder, Query, Values};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use std::str::FromStr;
-use chrono::{Local, NaiveDateTime, Utc};
-use near_primitives::types::AccountId;
-use crate::{DB_POOL, ValidatorSetInfo};
-use crate::anchor::types::StakingHistory;
-use crate::util::naive_date_time_from_nanos_time;
 
+use sea_query_driver_postgres::bind_query;
+
+use crate::anchor::types::StakingHistory;
+use crate::global::DB_POOL;
+use crate::util::{naive_date_time_from_nanos_time, naive_date_time_now};
+
+sea_query::sea_query_driver_postgres!();
 #[allow(unused)]
 #[derive(Iden)]
 #[iden(rename = "staking_histories")]
@@ -51,7 +50,7 @@ impl StakingHistoryStruct {
             timestamp: staking_history.timestamp.into(),
             index: staking_history.index.into(),
             timestamp_date: naive_date_time_from_nanos_time(staking_history.timestamp),
-            update_date: Utc::now().naive_local(),
+            update_date: naive_date_time_now(),
         }
     }
 
@@ -81,11 +80,6 @@ impl StakingHistoryStruct {
                 staking_history.update_date.clone().into(),
             ]).expect("DB staking_histories query data fail ");
         }
-        // query.on_conflict(
-        //     OnConflict::columns(vec![BlocksTable::BlockHash, BlocksTable::DateT])
-        //         .do_nothing()
-        //         .to_owned(),
-        // );
         query.build(PostgresQueryBuilder)
     }
 
