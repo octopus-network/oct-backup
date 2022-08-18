@@ -4,7 +4,7 @@ use near_primitives::types::{AccountId, Finality};
 use near_primitives::views::{CallResult, QueryRequest};
 use serde_json::Value;
 use crate::global::DEFAULT_NEAR_JSON_RPC_CLIENT;
-use tracing::{info, instrument};
+use tracing::{debug, info, instrument, trace};
 
 pub struct ViewResultDetails {
     /// Our result from our call into a view function.
@@ -50,7 +50,7 @@ pub async fn view(
 
     let rpc_client = DEFAULT_NEAR_JSON_RPC_CLIENT.get().await;
     let response = rpc_client.call(request).await?;
-    info!("view method response: {:?}", response);
+    trace!("view method response: {:?}", response);
     // println!("view {}.{} with arg: {}", contract_id, method_name, args.to_string());
     // dbg!(&response);
 
