@@ -28,6 +28,7 @@ pub struct Cmd {
     pub contract: String,
     #[structopt(short)]
     /// input postgres database connection url, if not input, it will try to read from env variable: DATABASE_URL
+    #[structopt(long = "database_url", short = "d")]
     pub database_url: Option<String>,
     #[structopt(subcommand)]
     pub sub_cmd: BackupType,

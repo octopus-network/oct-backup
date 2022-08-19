@@ -51,12 +51,10 @@ pub async fn view(
     let rpc_client = DEFAULT_NEAR_JSON_RPC_CLIENT.get().await;
     let response = rpc_client.call(request).await?;
     trace!("view method response: {:?}", response);
-    // println!("view {}.{} with arg: {}", contract_id, method_name, args.to_string());
-    // dbg!(&response);
 
     match response.kind {
         QueryResponseKind::CallResult(result) => Ok(result.into()),
         _ => {
-            anyhow::bail!("near view error result.")},
+            anyhow::bail!("near view response error kind.")},
     }
 }

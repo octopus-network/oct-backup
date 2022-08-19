@@ -2,29 +2,31 @@ use std::str::FromStr;
 
 use bigdecimal::BigDecimal;
 use itertools::Itertools;
-use tracing::warn;
+use tracing::{debug, instrument, warn};
 
 use crate::{AccountId, AnchorContract, AnchorView, ValidatorSetInfo, ValidatorSetStruct};
 use crate::anchor::types::{get_appchain_id_from_contract_id, RewardHistory};
 use crate::db::delegator_infos::DelegatorInfoStruct;
 use crate::db::staking_histories::StakingHistoryStruct;
 use crate::db::validator_infos::ValidatorInfoStruct;
-
-pub async fn backup_staking_histories(contract_id: AccountId,start_index: u64, quantity: Option<u64>)->anyhow::Result<()> {
+#[instrument(level = "debug")]
+pub async fn backup_staking_histories(contract_id: AccountId,start_index: u64, quantity: Option<u64>)->anyhow::Result<Vec<StakingHistoryStruct>> {
     let anchor_contract =  AnchorContract{ contract_account_id:  contract_id.clone()};
     let staking_histories = anchor_contract.get_staking_histories(start_index, quantity).await;
     let appchain_id = get_appchain_id_from_contract_id(&anchor_contract.contract_account_id);
     let staking_history_struct_vec = staking_histories.iter().map(|e| StakingHistoryStruct::from_staking_histories(
         e.clone(), appchain_id.clone())).collect_vec();
     StakingHistoryStruct::save(&staking_history_struct_vec).await?;
-    anyhow::Ok(())
+    anyhow::Ok(staking_history_struct_vec)
 }
 
-pub async fn backup_anchor_validator_set(contract_id: AccountId, era_number: u64)->anyhow::Result<()>{
+#[instrument(level = "debug")]
+pub async fn backup_anchor_validator_set(contract_id: AccountId, era_number: u64)->anyhow::Result<Option<(ValidatorSetStruct, Vec<ValidatorInfoStruct>, Vec<DelegatorInfoStruct>)>>{
     let anchor_contract =  AnchorContract{ contract_account_id:  contract_id.clone()};
     let info_option = anchor_contract.get_validator_set_info_of(era_number).await;
     if info_option.is_none() {
-        warn!("get_validator_set_info_of contract:{},era:{} ,and result is none, skip backup." , contract_id ,era_number);
+        warn!("get_validator_set_info_of contract:{}, era:{}, and result is none, skip back up." , contract_id ,era_number);
+        return anyhow::Ok(None)
     }
     let info = info_option.unwrap();
     let (validator_struct,
@@ -32,10 +34,15 @@ pub async fn backup_anchor_validator_set(contract_id: AccountId, era_number: u64
         delegator_info_struct_vec) =
         get_backup_data_by_info(&anchor_contract, era_number, info).await;
 
-    ValidatorSetStruct::save(&vec![validator_struct]).await?;
+    debug!("get validator_struct data: {:?}", validator_struct);
+    debug!("get validator_info_struct_vec data: {:?}", validator_info_struct_vec);
+    debug!("get delegator_info_struct_vec data: {:?}", delegator_info_struct_vec);
+
+    ValidatorSetStruct::save(&vec![validator_struct.clone()]).await?;
     ValidatorInfoStruct::save(&validator_info_struct_vec).await?;
     DelegatorInfoStruct::save(&delegator_info_struct_vec).await?;
-    anyhow::Ok(())
+
+    anyhow::Ok(Some((validator_struct, validator_info_struct_vec, delegator_info_struct_vec)))
 }
 
 pub async fn get_backup_data_by_info(

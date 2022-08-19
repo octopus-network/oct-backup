@@ -8,7 +8,7 @@ use async_once::AsyncOnce;
 use sqlx::{PgPool, Pool, Postgres};
 use crate::cmd::{Cmd, NearEnv};
 use structopt::StructOpt;
-use tracing::info;
+use tracing::{debug};
 
 lazy_static! {
     pub static ref CMD_ARG: AsyncOnce<Cmd> = AsyncOnce::new(async {
@@ -51,7 +51,7 @@ lazy_static! {
     });
     pub static ref DEFAULT_NEAR_JSON_RPC_CLIENT: AsyncOnce<JsonRpcClient> =AsyncOnce::new( async {
         let near_rpc_url = NEAR_RPC_URL.get().await;
-        println!("init near_rpc_url: {}", near_rpc_url);
+        debug!("init near_rpc_url: {}", near_rpc_url);
         JsonRpcClient::connect(near_rpc_url)
     });
 
@@ -61,7 +61,7 @@ lazy_static! {
             return cmd.database_url.clone();
         }
         let database_url = SYSTEM_ENV.get().await.database_url.clone();
-        info!("init database_url: {:?}", database_url);
+        debug!("init database_url: {:?}", database_url);
         database_url
     });
     pub static ref DB_POOL: AsyncOnce<Pool<Postgres>> = AsyncOnce::new( async {

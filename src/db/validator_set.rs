@@ -1,7 +1,7 @@
 sea_query::sea_query_driver_postgres!();
 use anyhow::Result;
 use bigdecimal::BigDecimal;
-use sea_query::{Iden, PostgresQueryBuilder, Query, Values};
+use sea_query::{Iden, OnConflict, PostgresQueryBuilder, Query, Values};
 use sea_query_driver_postgres::bind_query;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
@@ -99,6 +99,11 @@ impl ValidatorSetStruct {
                 validator_set.update_time.clone().into()
             ]).expect("DB query data fail validator_set");
         }
+        query.on_conflict(
+            OnConflict::columns(vec![ValidatorSetTable::AppchainId, ValidatorSetTable::EraNumber])
+                .do_nothing()
+                .to_owned(),
+        );
         query.build(PostgresQueryBuilder)
     }
 

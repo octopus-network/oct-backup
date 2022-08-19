@@ -2,8 +2,9 @@ use std::str::FromStr;
 
 use bigdecimal::BigDecimal;
 use chrono::NaiveDateTime;
-use sea_query::{Iden, PostgresQueryBuilder, Query, Values};
+use sea_query::{Iden, OnConflict, PostgresQueryBuilder, Query, Values};
 use serde::{Deserialize, Serialize};
+use tracing::{info, warn};
 
 use sea_query_driver_postgres::bind_query;
 
@@ -98,12 +99,17 @@ impl ValidatorInfoStruct {
                 validator_info.update_date.clone().into()
             ]).expect("DB query data fail validator_set");
         }
+        query.on_conflict(
+            OnConflict::columns(vec![ValidatorInfosTable::AppchainId, ValidatorInfosTable::EraNumber, ValidatorInfosTable::ValidatorId])
+                .do_nothing()
+                .to_owned(),
+        );
         query.build(PostgresQueryBuilder)
     }
 
     pub async fn save(validator_info_list: &[ValidatorInfoStruct]) -> anyhow::Result<()> {
         if validator_info_list.is_empty() {
-            println!("validator_info_list is empty");
+            warn!("validator_info_list is empty");
             return Ok(());
         }
         let (sql, values) = ValidatorInfoStruct::build_save_sql(validator_info_list);

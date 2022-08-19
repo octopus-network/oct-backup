@@ -1,8 +1,9 @@
 use bigdecimal::BigDecimal;
 use chrono::NaiveDateTime;
-use sea_query::{Iden, PostgresQueryBuilder, Query, Values};
+use sea_query::{Iden, OnConflict, PostgresQueryBuilder, Query, Values};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+use tracing::warn;
 
 use sea_query_driver_postgres::bind_query;
 
@@ -27,13 +28,13 @@ enum StakingHistoriesTable {
 
 #[derive(Serialize, Deserialize, Debug, Clone, sqlx::FromRow)]
 pub struct StakingHistoryStruct {
-    appchain_id: String,
-    staking_fact: Value,
-    block_height: BigDecimal,
-    timestamp: BigDecimal,
-    index: BigDecimal,
-    timestamp_date: NaiveDateTime,
-    update_date: NaiveDateTime,
+    pub appchain_id: String,
+    pub staking_fact: Value,
+    pub block_height: BigDecimal,
+    pub timestamp: BigDecimal,
+    pub index: BigDecimal,
+    pub timestamp_date: NaiveDateTime,
+    pub update_date: NaiveDateTime,
 }
 
 
@@ -80,12 +81,17 @@ impl StakingHistoryStruct {
                 staking_history.update_date.clone().into(),
             ]).expect("DB staking_histories query data fail ");
         }
+        query.on_conflict(
+            OnConflict::columns(vec![StakingHistoriesTable::AppchainId, StakingHistoriesTable::Index])
+                .do_nothing()
+                .to_owned(),
+        );
         query.build(PostgresQueryBuilder)
     }
 
     pub async fn save(staking_histories: &[StakingHistoryStruct]) -> anyhow::Result<()> {
         if staking_histories.is_empty() {
-            println!("staking_histories is empty");
+            warn!("staking_histories is empty");
             return Ok(());
         }
         let (sql, values) = StakingHistoryStruct::build_save_sql(staking_histories);

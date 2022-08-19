@@ -2,7 +2,7 @@ sea_query::sea_query_driver_postgres!();
 use std::str::FromStr;
 use bigdecimal::BigDecimal;
 use chrono::NaiveDateTime;
-use sea_query::{Iden, PostgresQueryBuilder, Query, Values};
+use sea_query::{Iden, OnConflict, PostgresQueryBuilder, Query, Values};
 use crate::anchor::types::{AppchainDelegator, AppchainId};
 use serde::{Deserialize, Serialize};
 use sea_query_driver_postgres::bind_query;
@@ -81,6 +81,15 @@ impl DelegatorInfoStruct {
             ]).expect("DB query data fail validator_set");
 
         }
+
+        query.on_conflict(
+            OnConflict::columns(vec![DelegatorInfosTable::AppchainId,
+                                     DelegatorInfosTable::EraNumber,
+                                     DelegatorInfosTable::ValidatorId,
+                                     DelegatorInfosTable::DelegatorId])
+                .do_nothing()
+                .to_owned(),
+        );
         query.build(PostgresQueryBuilder)
     }
 
