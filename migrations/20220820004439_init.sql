@@ -1,6 +1,7 @@
 -- Add migration script here
+CREATE SCHEMA backup;
 
-CREATE TABLE "public"."validator_set"
+CREATE TABLE "backup"."validator_set"
 (
     "appchain_id"                varchar(20)    NOT NULL,
     "era_number"                 numeric(20, 0) NOT NULL,
@@ -18,7 +19,7 @@ CREATE TABLE "public"."validator_set"
 
 
 
-CREATE TABLE public.validator_infos
+CREATE TABLE backup.validator_infos
 (
     appchain_id               varchar(25) NOT NULL,
     era_number                decimal(20) NOT NULL,
@@ -34,7 +35,7 @@ CREATE TABLE public.validator_infos
 );
 
 
-CREATE TABLE public.delegator_infos
+CREATE TABLE backup.delegator_infos
 (
     appchain_id               varchar(25) NOT NULL,
     era_number                decimal(20) NOT NULL,
@@ -48,7 +49,7 @@ CREATE TABLE public.delegator_infos
 );
 
 
-CREATE TABLE public.staking_histories
+CREATE TABLE backup.staking_histories
 (
     staking_fact   jsonb       NOT NULL,
     block_height   decimal(20) NOT NULL,

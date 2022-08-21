@@ -5,8 +5,21 @@ A command-line tool for backing up the validator set data and staking action dat
 # How to use
 
 
-1. Config `database_url` by command argument or environment variable. 
-2. Use command to back up data, you can see more detail to use it by `-h`:
+1. Config `database_url` by command argument or environment variable. example: 
+```shell
+DATABASE_URL=postgresql://@localhost/template?options[search_path]=backup
+```
+or 
+```shell
+oct-backup -d, --database_url <database-url>
+```
+2. Config other optional environment variable, example: 
+```shell
+NEAR_ENV=mainnet
+NEAR_CLI_TESTNET_RPC_SERVER_URL=https://rpc.testnet.near.org
+NEAR_CLI_MAINNET_RPC_SERVER_URL=https://rpc.mainnet.near.org
+```
+3. Use command to back up data, you can see more detail to use it by `-h`:
 
 ```shell
 USAGE:
